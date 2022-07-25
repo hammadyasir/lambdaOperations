@@ -9,17 +9,19 @@ import os
 
 
 def lambda_handler(event,context):
-    print ('i am here')
-    print ("Event are:",event)
-    login_url_R=event['rets_login_url']
-    print("login_url_R",login_url_R)
+    # print ('i am here')
+    # print ("Event are:",event)
+    # login_url_R=event['rets_login_url']
+    # print("login_url_R",login_url_R)
     
-    rets_username_R=event['rets_username']
-    print("rets_username_R",rets_username_R)
+    # rets_username_R=event['rets_username']
+    # print("rets_username_R",rets_username_R)
     
-    rets_password_R=event['rets_password']
-    print("rets_password_R",rets_password_R)
-    
+    # rets_password_R=event['rets_password']
+    # print("rets_password_R",rets_password_R)
+    login_url_R = 'https://cwtar-rets.paragonrels.com/rets/fnisrets.aspx/CWTAR/login?rets-version=rets/1.8'
+    rets_username_R = 'ylopo2'
+    rets_password_R = '1111'
     
     
     # return '0';
@@ -35,7 +37,7 @@ def lambda_handler(event,context):
     s3=boto3.client("s3")
     rets_client.login()
     database='default'
-    
+    str_list2=["ActiveAgent","ActiveOffice"]
     str_list=["RE_1","LD_2","CI_3","MF_4"]
     resource=["Property","Media","OpenHouse"]
     class_names=["RESIDENTIAL","LOTS/LAND","COMMERCIAL/INDUSTRIAL","MULTI-FAMILY"]
@@ -63,7 +65,7 @@ def lambda_handler(event,context):
                         query="(L_UpdateDate="+dq+"+)"
                     
                 if len(dq)==0:
-                    dq='2022-01-01'
+                    dq='2022-07-01'
                     print(dq)
                     query="(L_UpdateDate="+dq+"+)"
             print('if loop',dq)    
@@ -80,7 +82,7 @@ def lambda_handler(event,context):
                         query="(L_UpdateDate="+dq+"+)"
                     print(dq)
                 if len(dq)==0:
-                    dq='2022-01-01'
+                    dq='2022-07-01'
                     print(dq)
                     query="(L_UpdateDate="+dq+"+)"
             if resource[j]=="OpenHouse" :
@@ -95,7 +97,7 @@ def lambda_handler(event,context):
                         query="(OH_UpdateDateTime="+dq+"+)"
                     print(dq)
                 if len(dq)==0:
-                    dq='2022-05-01'
+                    dq='2022-07-01'
                     print(dq)
                     query="(OH_UpdateDateTime="+dq+"+)"
             #query='(L_UpdateDate=2022-01-01+)'
@@ -151,33 +153,86 @@ def lambda_handler(event,context):
     end = time.time()
     print(f"Runtime of the program is {end - start}")
 
-    # c=0
-   
-    # while c < sizeoflist2:
-    #     print ('awais')
-    #     if str_list2[c]=="ActiveAgent" :
-    #             query='(U_UpdateDate=2022-05-23+)'
-    #     if str_list2[c]=="ActiveOffice" :
-    #             query='(O_UpdateDate=2022-05-23+)'
-    #     system_data = rets_client.search(resource=str_list2[c], resource_class=str_list2[c],dmql_query=query)
-    #     print (system_data)
-    #     file_name = str_list2[c]+'.csv'
-    #     df = pd.DataFrame(system_data)
-    #     print (df)
-    #     s3=boto3.resource("s3")
-    #     bucket = s3.Bucket(bucket_name)
-    #         # bucket.upload_fileobj(
-    #         # file,
-    #         # f"{subfolder}/{key}/{str_list[i]}")
-    #     Path1='s3://almsbucket/cwatr/'+str_list2[c]+'/'+str_list2[c]+'.parquet'
-    #     len1=len(df)
-    #     if len1!=0 :
-    #         wr.s3.to_parquet(
-    #         df=df,
-    #         path=Path1
-    #             # path=f"{subfolder}/{key}/{str_list[i]}"
-    #         )
-    #     i=i+1
+    c=0
+    sizeoflist2= len(str_list2)
+    print (f"size of list is {sizeoflist2}")
+    while c < sizeoflist2:
+        if str_list2[c]=="ActiveAgent" :
+            dq = wr.athena.read_sql_query(sql="SELECT table_name FROM information_schema.columns WHERE table_name = 'ActiveAgent' LIMIT 1", database="default")
+            print (dq)
+            if not dq.empty:
+                sql_query=''
+                sql_query='SELECT U_UpdateDate FROM ActiveAgent Where l_class=\''+str_list2[c]+'\' order by 1 desc limit 1'
+                print(sql_query)
+                dq = wr.athena.read_sql_query(sql=sql_query, database="default")
+                print('Dq value is',dq)
+                if not dq.empty:
+                    dq=dq['U_UpdateDate'].iloc[0]
+                    # dq=dq.get('l_updatedate').iloc[0]
+                    query="(U_UpdateDate="+dq+"+)"
+                    
+            if len(dq)==0:
+                dq='2000-01-01'
+                print(dq)
+                query="(U_UpdateDate="+dq+"+)"
+        if str_list2[c]=="ActiveOffice" :
+            dq = wr.athena.read_sql_query(sql="SELECT table_name FROM information_schema.columns WHERE table_name = 'ActiveOffice' LIMIT 1", database="default")
+            print (dq)
+            if not dq.empty:
+                sql_query=''
+                sql_query='SELECT O_UpdateDate FROM ActiveOffice Where l_class=\''+str_list2[c]+'\' order by 1 desc limit 1'
+                print(sql_query)
+                dq = wr.athena.read_sql_query(sql=sql_query, database="default")
+                print('Dq value is',dq)
+                if not dq.empty:
+                    dq=dq['O_UpdateDate'].iloc[0]
+                    # dq=dq.get('l_updatedate').iloc[0]
+                    query="(O_UpdateDate="+dq+"+)"
+                    
+            if len(dq)==0:
+                dq='2000-01-01'
+                print(dq)
+                query="(O_UpdateDate="+dq+"+)"
+        print (f"query is {query}")
+        system_data=''
+        system_data = rets_client.search(resource=str_list2[c], resource_class=str_list2[c], limit = 100, dmql_query=query)
+        df=pd.DataFrame(system_data)
+            # print (df)
+        if not df.empty :
+                #print (df['L_UpdateDate'].str[0:10])
+            current_dat=[]
+            if str_list2[c]=="ActiveAgent"  :
+                current_dat=df['U_UpdateDate'].str[0:10]
+            if str_list2[c]=="ActiveOffice" :
+                current_dat=df['O_UpdateDate'].str[0:10]
+            df['current_date']=current_dat#.drop_duplicates()
+                #print(df['current_dat'])
+            s3=boto3.resource("s3")
+            bucket = s3.Bucket(bucket_name)
+            Path='s3://almsbucket/cwatr/'+resource[c]+'/'
+            new_folder=resource[c]
+            Table=resource[c].lower()
+            default='default'
+            length=len(df)
+            a1= set((list(df.columns)))
+            dtype=dict.fromkeys(a1,'string')
+            if length!=0 :
+            # and Table=='property' and str_list[i]=="RE_1":
+                wr.s3.to_parquet(
+                df=df,
+                path=Path,
+                mode='append',
+                database=default,
+                table=Table,
+                filename_prefix=resource[c],
+                dtype=dtype,
+                # boto3_session=s3.session,
+                partition_cols=["current_date"],
+                 dataset=True
+                # use_threads=True
+
+                ) 
+        c=c+1
     print("Done Work by cwatr Lambda")    
     return {
         'statusCode': 200,

@@ -17,22 +17,22 @@ def lambda_handler(event, context):
     db_host =os.environ['db_host']
     db_port = os.environ['db_port']
     
-    print("db_username Type:", type(db_username))
-    print("db_username are:", db_username)
+    # print("db_username Type:", type(db_username))
+    # print("db_username are:", db_username)
     
-    print("DataBase Name Type:", type(db_name))
-    print("DataBase Name are:", db_name)
+    # print("DataBase Name Type:", type(db_name))
+    # print("DataBase Name are:", db_name)
    
     
-    print("Type of password",type(db_password))
-    print("Password are:", db_password)
+    # print("Type of password",type(db_password))
+    # print("Password are:", db_password)
     
     
-    print("Type of db_host are:",type(db_host))
-    print("db_host name are:",db_host)
+    # print("Type of db_host are:",type(db_host))
+    # print("db_host name are:",db_host)
     
-    print("Type of db_port are:",type(db_port))
-    print("db_port are:",db_port)
+    # print("Type of db_port are:",type(db_port))
+    # print("db_port are:",db_port)
     
     conn_api = psycopg2.connect(database=db_name, user=db_username, password=db_password,
                             host=db_host, port=int(db_port))
@@ -51,14 +51,14 @@ def lambda_handler(event, context):
             dict_obj[key] = [dict_obj[key], value]
             
     for i in cur_api.fetchall():
-        print("TYPE:",type(i))
-        print("data are:",i)
-        print("hello type",type(i[0]))
-        print("hello",i[0])
+        # print("TYPE:",type(i))
+        # print("data are:",i)
+        # print("hello type",type(i[0]))
+        # print("hello",i[0])
         
         alldetails = json.loads(i[0])
-        print("RES type",type(alldetails))
-        print("RES ARE",alldetails)
+        # print("RES type",type(alldetails))
+        # print("RES ARE",alldetails)
         
         user_key_to_lookup = 'user'
         if user_key_to_lookup in alldetails:
@@ -88,9 +88,9 @@ def lambda_handler(event, context):
             print("password_key_to_lookup Key does not exist")
             
     
-    print("MYDIC Users",mydic['user'])
-    print("MYDIC loginUrl",mydic['loginUrl'])
-    print("MYDIC password",mydic['password'])
+    # print("MYDIC Users",mydic['user'])
+    # print("MYDIC loginUrl",mydic['loginUrl'])
+    # print("MYDIC password",mydic['password'])
 
 
     print("____")
@@ -106,9 +106,9 @@ def lambda_handler(event, context):
     password_R=first_row[2]
     
     
-    print("dONE USER:",username_R)
-    print("dONE loginUrl",loginUrl_R)
-    print("ONE password",password_R)
+    # print("dONE USER:",username_R)
+    # print("dONE loginUrl",loginUrl_R)
+    # print("ONE password",password_R)
 
     
     # credentials for ylopo2
@@ -119,14 +119,14 @@ def lambda_handler(event, context):
     # rets_password = os.environ['rets_password']
     rets_password = password_R
     
-    print("Type of rest login url:",type(rets_login_url))
-    print("rets login url:",rets_login_url)
+    # print("Type of rest login url:",type(rets_login_url))
+    # print("rets login url:",rets_login_url)
    
-    print("Type of Rets username are:",type(rets_username))
-    print("Rets username are:",rets_username)
+    # print("Type of Rets username are:",type(rets_username))
+    # print("Rets username are:",rets_username)
     
-    print("Type of rets_password",type(rets_password))
-    print("rets_password",rets_password)
+    # print("Type of rets_password",type(rets_password))
+    # print("rets_password",rets_password)
 
     rets_client = Session(rets_login_url, rets_username, rets_password)
     rets_client.login()
@@ -229,11 +229,11 @@ def lambda_handler(event, context):
             raise Exception(row)
         else:
             pass
-            # lambda_client = boto3.client('lambda')
-            # lambda_payload = {'rets_login_url':rets_login_url,'rets_username':rets_username,'rets_password':rets_password}
-            # lambda_client.invoke(FunctionName='cwatr', 
-            #          InvocationType='Event',
-            #          Payload=json.dumps(lambda_payload))
+            lambda_client = boto3.client('lambda')
+            lambda_payload = {'rets_login_url':rets_login_url,'rets_username':rets_username,'rets_password':rets_password}
+            lambda_client.invoke(FunctionName='cwatr', 
+                     InvocationType='Event',
+                     Payload=json.dumps(lambda_payload))
      
     conn.commit()
     conn.close()
